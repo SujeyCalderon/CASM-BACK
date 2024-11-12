@@ -22,3 +22,4 @@ class UserUpdate(BaseModel):
     document: Optional[str] = None
     address: Optional[str] = None
     is_premium: Optional[bool] = False
+#api casm
