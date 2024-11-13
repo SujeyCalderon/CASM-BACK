@@ -1,10 +1,15 @@
 from typing import List, Optional
 from fastapi import HTTPException
 from datetime import date
-from models import User, Publication, Notes, Directory, Favorites, Role
+from models.user import User
+from models.publications import Publication
+from models.notes import Notes
+from models.directory import Directory
+from models.favorites import Favorites
+from models.role import Role
 import uuid  # Importamos uuid para generar IDs únicos
 
-
+# Lista para almacenar notas en memoria (esto es temporal; en producción, usarías una base de datos)
 notes: List[Notes] = []
 
 # Servicios para Notas
@@ -22,13 +27,9 @@ def get_note_by_id(note_id: str) -> Notes:
         raise HTTPException(status_code=404, detail="Nota no encontrada")
     return note
 
-
 def update_note(note_id: str, updated_note: Notes) -> Notes:
     # Recuperar la nota actual por ID
     note = get_note_by_id(note_id)
-
-    if not note:
-        raise HTTPException(status_code=404, detail="Nota no encontrada")
 
     # Convertir el modelo actualizado a un diccionario, excluyendo los campos no establecidos
     update_data = updated_note.dict(exclude_unset=True)
@@ -42,7 +43,6 @@ def update_note(note_id: str, updated_note: Notes) -> Notes:
     note.modification_date = date.today()
 
     return note
-
 
 def delete_note(note_id: str) -> Notes:
     note = get_note_by_id(note_id)

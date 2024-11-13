@@ -4,9 +4,7 @@ import os
 import shutil
 import uuid
 from models import  Role
-from services import (
- create_role, get_roles, get_role_by_id, update_role, delete_role
-)
+from services.role_service import create_role, get_role_by_id, get_roles, update_role, delete_role
 
 router = APIRouter()
 # Endpoints Roles

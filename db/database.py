@@ -5,7 +5,7 @@ from sqlalchemy.orm import sessionmaker
 from contextlib import contextmanager
 
 # Cadena de conexión de PostgreSQL
-SQLALCHEMY_DATABASE_URL = "postgresql+psycopg2://postgres:calmar5@localhost/CASM"
+SQLALCHEMY_DATABASE_URL = "postgresql+psycopg2://nuevo:@localhost/casm"
 
 # Crea el motor y la sesión
 engine = create_engine(SQLALCHEMY_DATABASE_URL, pool_pre_ping=True)  # pool_pre_ping ayuda a evitar problemas de conexión inactiva

@@ -1,52 +1,40 @@
 from sqlalchemy.orm import Session
+from models.user import User
+from schemas.schemas_user import UserRequest, UserUpdate
 from fastapi import HTTPException
-from models import User as UserModel
-from schemas import schemas_user
 
-def create_user(db: Session, user: schemas_user) -> UserModel:
-    db_user = UserModel(
-        id=user.id,
-        name=user.name,
-        email=user.email,
-        password=user.password,
-        specialty=user.specialty,
-        phone=user.phone,
-        role=user.role,
-        document=user.document,
-        address=user.address,
-        is_premium=user.is_premium
-    )
-    
-    db.add(db_user)
+def get_all_users(db: Session):
+    return db.query(User).all()
+
+def create_user(user_data: UserRequest, db: Session):
+    new_user = User(**user_data.dict())
+    db.add(new_user)
     db.commit()
-    db.refresh(db_user)
-    return db_user
+    db.refresh(new_user)
+    return new_user
 
-def get_users(db: Session):
-    return db.query(UserModel).all()
-
-def get_user_by_id(db: Session, user_id: str):
-    user = db.query(UserModel).filter(UserModel.id == user_id).first()
-    if user is None:
+def get_user_by_id(user_id: str, db: Session):
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
     return user
 
-def update_user(db: Session, user_id: str, updated_user: schemas_user):
-    user = get_user_by_id(db, user_id)
-    if user is None:
+def update_user(user_id: str, updated_user: UserUpdate, db: Session):
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
     
-    # Actualizar solo los campos proporcionados
-    for field, value in updated_user.dict(exclude_unset=True).items():
-        setattr(user, field, value)
+    updated_data = updated_user.dict(exclude_unset=True)
+    for key, value in updated_data.items():
+        setattr(user, key, value)
     
     db.commit()
     db.refresh(user)
     return user
 
-def delete_user(db: Session, user_id: str):
-    user = get_user_by_id(db, user_id)
-    if user is None:
+def delete_user(user_id: str, db: Session):
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
     
     db.delete(user)

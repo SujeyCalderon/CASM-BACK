@@ -1,11 +1,17 @@
 from typing import List, Optional
 from fastapi import HTTPException
 from datetime import date
-from models import User, Publication, Notes, Directory, Favorites, Role
+from models.user import User
+from models.publications import Publication
+from models.notes import Notes
+from models.directory import Directory
+from models.favorites import Favorites
+from models.role import Role
 import uuid  # Importamos uuid para generar IDs únicos
 
-
+# Lista para almacenar roles en memoria (podrías reemplazar esto con una base de datos en producción)
 roles: List[Role] = []
+
 # Servicios para Roles
 def create_role(role: Role) -> Role:
     role.id = str(uuid.uuid4())  # Genera un ID único usando UUID

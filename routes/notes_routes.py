@@ -3,9 +3,7 @@ import os
 import shutil
 import uuid
 from models import  Notes
-from services import (
-  create_note, get_notes, get_note_by_id, update_note, delete_note
-)
+from services.notes_service import create_note, get_note_by_id, get_notes, update_note, delete_note
 
 router = APIRouter()
 # Endpoints Notes

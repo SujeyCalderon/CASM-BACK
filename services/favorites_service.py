@@ -1,11 +1,17 @@
 from typing import List, Optional
 from fastapi import HTTPException
 from datetime import date
-from models import User, Publication, Notes, Directory, Favorites, Role
+from models.user import User
+from models.publications import Publication
+from models.notes import Notes
+from models.directory import Directory
+from models.favorites import Favorites
+from models.role import Role
 import uuid  # Importamos uuid para generar IDs únicos
 
-
+# Lista para almacenar favoritos en memoria (esto es temporal; en producción, usarías una base de datos)
 favorites: List[Favorites] = []
+
 # Servicios para Favoritos
 def create_favorite(favorite: Favorites) -> Favorites:
     favorite.id = str(uuid.uuid4())  # Genera un ID único usando UUID
@@ -28,7 +34,6 @@ def get_favorites_by_id(favorite_id: str) -> Favorites:
         raise HTTPException(status_code=404, detail="Favorite no encontrado")
     
     return favorite
-
 
 def delete_favorite(favorite_id: str) -> Favorites:
     favorite = next((f for f in favorites if f.id == favorite_id), None)

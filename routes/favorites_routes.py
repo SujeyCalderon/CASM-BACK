@@ -4,9 +4,7 @@ import os
 import shutil
 import uuid
 from models import  Favorites
-from services import (
-    create_favorite, get_favorites, get_favorites_by_id, delete_favorite
-)
+from services.favorites_service import create_favorite, get_favorites_by_id, get_favorites, delete_favorite
 
 router = APIRouter()
 # Endpoints Favorites

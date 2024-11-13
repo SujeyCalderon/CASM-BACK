@@ -1,15 +1,12 @@
-from sqlalchemy import Column, String, Boolean
-from db.database import Base
+# Ubicación del archivo: models/publications.py
+from sqlalchemy import Column, String, Text
+from db.database import Base  # Asegúrate de que `database.py` define `Base`
 import uuid
-from typing import Optional
-class Publication(Base):
-    __tablename__ = "publication"
-    id: str = None  
-    user_id: Optional[str] = None  
-    description: Optional[str] = None
-    image: Optional[str] = None  
 
-    def __init__(self, **data):
-        super().__init__(**data)
-        if not self.id:
-            self.id = str(uuid.uuid4())
+class Publication(Base):
+    __tablename__ = "publications"
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id = Column(String, nullable=False)
+    description = Column(Text, nullable=True)
+    image = Column(String, nullable=True)
