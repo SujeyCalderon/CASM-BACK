@@ -13,31 +13,45 @@ router = APIRouter()
 @router.post("/users/", response_model=UserResponse)
 async def create_user_endpoint(
     name: str = Form(...),
+    last_name: Optional[str] = Form(None),  # Agregado para el apellido
     email: str = Form(...),
     password: str = Form(...),
-    specialty: Optional[str] = Form(None),
+    speciality: Optional[str] = Form(None),  # Cambiado a "speciality"
     phone: Optional[str] = Form(None),
     role: Optional[str] = Form(None),
     document: UploadFile = File(...),
-    address: Optional[str] = Form(None),
-    is_premium: Optional[bool] = Form(False),
+    profile_img: Optional[UploadFile] = File(None),  # Agregado para la imagen de perfil
+    id_referency: Optional[str] = Form(None),  # Agregado para la referencia
+    premium: Optional[bool] = Form(False),
     db: Session = Depends(get_db)
 ):
-    unique_filename = f"{uuid.uuid4()}_{document.filename}"
-    file_path = f"uploads/{unique_filename}"
-    with open(file_path, "wb") as buffer:
+    # Guardar el documento
+    unique_doc_filename = f"{uuid.uuid4()}_{document.filename}"
+    doc_path = f"uploads/{unique_doc_filename}"
+    with open(doc_path, "wb") as buffer:
         shutil.copyfileobj(document.file, buffer)
 
+    # Guardar la imagen de perfil si existe
+    profile_img_path = None
+    if profile_img:
+        unique_img_filename = f"{uuid.uuid4()}_{profile_img.filename}"
+        profile_img_path = f"uploads/{unique_img_filename}"
+        with open(profile_img_path, "wb") as buffer:
+            shutil.copyfileobj(profile_img.file, buffer)
+
+    # Crear datos del usuario
     user_data = UserRequest(
         name=name,
+        last_name=last_name,
         email=email,
         password=password,
-        specialty=specialty,
+        speciality=speciality,
         phone=phone,
         role=role,
-        document=file_path,
-        address=address,
-        is_premium=is_premium
+        document=doc_path,
+        profile_img=profile_img_path,
+        id_referency=id_referency,
+        premium=premium
     )
 
     return create_user(user_data, db)

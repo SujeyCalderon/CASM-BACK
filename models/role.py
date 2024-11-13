@@ -1,13 +1,13 @@
-from sqlalchemy import Column, String, Boolean
+from sqlalchemy import Column, String
+from sqlalchemy.orm import Mapped, mapped_column
 from db.database import Base
-from typing import Optional
 import uuid
+
 class Role(Base):
     __tablename__ = "role"
-    id: str = None  
-    name: Optional[str] = None  
+
+    id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    name: Mapped[str] = mapped_column(String)
 
     def __init__(self, **data):
         super().__init__(**data)
-        if not self.id:
-            self.id = str(uuid.uuid4())

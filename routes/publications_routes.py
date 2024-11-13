@@ -5,6 +5,7 @@ import os
 import uuid
 import shutil
 
+# Importaciones necesarias
 from models.publications import Publication
 from services.publications_service import (
     create_publication,
@@ -18,7 +19,7 @@ from db.database import get_db
 
 router = APIRouter()
 
-# Define the upload directory and create it if it doesn't exist
+# Define el directorio de carga y crea si no existe
 UPLOAD_DIR = "uploads"
 if not os.path.exists(UPLOAD_DIR):
     os.makedirs(UPLOAD_DIR)

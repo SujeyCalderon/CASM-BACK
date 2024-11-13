@@ -14,13 +14,13 @@ def create_user(user_data: UserRequest, db: Session):
     return new_user
 
 def get_user_by_id(user_id: str, db: Session):
-    user = db.query(User).filter(User.id == user_id).first()
+    user = db.query(User).filter(User.id_user == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
     return user
 
 def update_user(user_id: str, updated_user: UserUpdate, db: Session):
-    user = db.query(User).filter(User.id == user_id).first()
+    user = db.query(User).filter(User.id_user == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
     
@@ -33,7 +33,7 @@ def update_user(user_id: str, updated_user: UserUpdate, db: Session):
     return user
 
 def delete_user(user_id: str, db: Session):
-    user = db.query(User).filter(User.id == user_id).first()
+    user = db.query(User).filter(User.id_user == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
     

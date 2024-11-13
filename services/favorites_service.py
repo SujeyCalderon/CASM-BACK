@@ -7,6 +7,8 @@ from models.notes import Notes
 from models.directory import Directory
 from models.favorites import Favorites
 from models.role import Role
+from models.favorites import Favorites as DBFavorites  # Este es el modelo SQLAlchemy
+
 import uuid  # Importamos uuid para generar IDs únicos
 
 # Lista para almacenar favoritos en memoria (esto es temporal; en producción, usarías una base de datos)
@@ -14,10 +16,11 @@ favorites: List[Favorites] = []
 
 # Servicios para Favoritos
 def create_favorite(favorite: Favorites) -> Favorites:
-    favorite.id = str(uuid.uuid4())  # Genera un ID único usando UUID
-    if favorite not in favorites:  # Evitar duplicados
-        favorites.append(favorite)
-    return favorite
+    favorite_id = str(uuid.uuid4())
+    favorite_data = DBFavorites(id=favorite_id, **favorite.dict())  # Usar el modelo de DB aquí
+    favorites.append(favorite_data)  # Guarda en la lista de favoritos
+    return Favorites.from_orm(favorite_data)  # Devuelve un modelo Pydantic
+
 
 def get_favorites() -> List[Favorites]:
     return favorites

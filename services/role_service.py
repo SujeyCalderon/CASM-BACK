@@ -1,15 +1,9 @@
-from typing import List, Optional
+from typing import List
 from fastapi import HTTPException
-from datetime import date
-from models.user import User
-from models.publications import Publication
-from models.notes import Notes
-from models.directory import Directory
-from models.favorites import Favorites
 from models.role import Role
-import uuid  # Importamos uuid para generar IDs únicos
+import uuid
 
-# Lista para almacenar roles en memoria (podrías reemplazar esto con una base de datos en producción)
+# Lista para almacenar roles en memoria temporalmente (puedes reemplazar esto por acceso a la base de datos)
 roles: List[Role] = []
 
 # Servicios para Roles

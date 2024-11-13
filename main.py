@@ -7,11 +7,12 @@ from routes import (
     notes_routes,
     publications_routes,
     role_routes,
-    user_routes
+    referency_router,
+    user_routes   
 )
 
 # Importa los modelos para que se puedan crear las tablas
-from models import directory, favorites, LoginRequest, LoginResponse, notes, publications, role, user
+from models import directory, favorites, notes, publications, role, user, referency
 
 app = FastAPI()
 
@@ -19,11 +20,12 @@ app = FastAPI()
 Base.metadata.create_all(bind=engine)
 
 # Dependencia para obtener la sesión de la base de datos
-#    db = SessionLocal()
-#    try:
-#        yield db
-#    finally:
-#        db.close()
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 # Incluye las rutas de la aplicación (sin login_routes)
 app.include_router(directory_routes.router)
@@ -32,7 +34,7 @@ app.include_router(notes_routes.router)
 app.include_router(publications_routes.router)
 app.include_router(role_routes.router)
 app.include_router(user_routes.router) 
-
+app.include_router(referency_router.router)
 
 # Ruta de prueba
 @app.get("/")

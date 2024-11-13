@@ -1,4 +1,3 @@
-# Ubicación del archivo: models/publications.py
 from sqlalchemy import Column, String, Text
 from db.database import Base  # Asegúrate de que `database.py` define `Base`
 import uuid

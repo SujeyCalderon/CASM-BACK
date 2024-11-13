@@ -1,20 +1,14 @@
-from typing import List, Optional
-from fastapi import HTTPException
+import uuid
+from typing import List
 from datetime import date
-from models.user import User
-from models.publications import Publication
+from fastapi import HTTPException
 from models.notes import Notes
-from models.directory import Directory
-from models.favorites import Favorites
-from models.role import Role
-import uuid  # Importamos uuid para generar IDs únicos
 
-# Lista para almacenar notas en memoria (esto es temporal; en producción, usarías una base de datos)
+# Lista temporal de notas (en una base de datos real se utilizaría una base de datos)
 notes: List[Notes] = []
 
-# Servicios para Notas
 def create_note(note: Notes) -> Notes:
-    note.id = str(uuid.uuid4())  # Genera un ID único usando UUID
+    note.id = str(uuid.uuid4())  # Genera un ID único
     notes.append(note)
     return note
 
@@ -28,15 +22,15 @@ def get_note_by_id(note_id: str) -> Notes:
     return note
 
 def update_note(note_id: str, updated_note: Notes) -> Notes:
-    # Recuperar la nota actual por ID
+    # Obtener la nota existente
     note = get_note_by_id(note_id)
 
     # Convertir el modelo actualizado a un diccionario, excluyendo los campos no establecidos
     update_data = updated_note.dict(exclude_unset=True)
 
-    # Actualizar solo los campos que fueron proporcionados y no son None
+    # Actualizar los campos proporcionados
     for key, value in update_data.items():
-        if value is not None and key != "id":  # No permitir cambiar el ID
+        if value is not None and key != "id":  # No permitir modificar el ID
             setattr(note, key, value)
 
     # Actualizar la fecha de modificación

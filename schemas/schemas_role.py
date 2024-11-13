@@ -1,12 +1,10 @@
-import uuid
 from pydantic import BaseModel
 from typing import Optional
-from datetime import date
-class Role(BaseModel):
-    id: str = None  
-    name: Optional[str] = None  
+import uuid
 
-    def __init__(self, **data):
-        super().__init__(**data)
-        if not self.id:
-            self.id = str(uuid.uuid4())
+class RoleSchema(BaseModel):
+    id: str = None
+    name: Optional[str] = None
+
+    class Config:
+        from_attributes = True  # En lugar de `orm_mode = True` en Pydantic v2
