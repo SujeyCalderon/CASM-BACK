@@ -1,12 +1,15 @@
 from sqlalchemy.orm import Session
-from fastapi import HTTPException
 from models.directory import Directory
 from schemas.schemas_directory import DirectoryCreate
-import uuid
+from fastapi import HTTPException
 
-def create_directory(db: Session, directory_data: DirectoryCreate) -> Directory:
+from uuid import UUID
+
+import uuid  # Asegúrate de importar el módulo uuid
+
+def create_directory(directory_data: DirectoryCreate, db: Session) -> Directory:
     new_directory = Directory(
-        id=str(uuid.uuid4()),
+        id=str(uuid.uuid4()),  # Convertir el UUID a string
         user_id=directory_data.user_id,
         name=directory_data.name,
         description=directory_data.description,
@@ -19,3 +22,38 @@ def create_directory(db: Session, directory_data: DirectoryCreate) -> Directory:
     db.commit()
     db.refresh(new_directory)
     return new_directory
+
+
+def get_directory_by_id(directory_id: str, db: Session) -> Directory:
+    directory = db.query(Directory).filter(Directory.id == directory_id).first()
+    if directory is None:
+        raise HTTPException(status_code=404, detail="Directorio no encontrado")
+    return directory
+
+def get_directories(db: Session) -> list[Directory]:
+    return db.query(Directory).all()
+
+def update_directory(directory_id: UUID, updated_directory: DirectoryCreate, db: Session) -> Directory:
+    # Buscar el directorio por ID
+    directory = db.query(Directory).filter(Directory.id == str(directory_id)).first()  # Convertir UUID a str
+    if directory is None:
+        raise HTTPException(status_code=404, detail="Directorio no encontrado")
+    
+    # Actualizar solo los campos que fueron proporcionados
+    for field, value in updated_directory.dict(exclude_unset=True).items():
+        if value is not None:
+            setattr(directory, field, value)
+
+    # Guardar los cambios en la base de datos
+    db.commit()
+    db.refresh(directory)
+    return directory
+
+def delete_directory(directory_id: str, db: Session) -> Directory:
+    directory = db.query(Directory).filter(Directory.id == directory_id).first()
+    if directory is None:
+        raise HTTPException(status_code=404, detail="Directorio no encontrado")
+
+    db.delete(directory)
+    db.commit()
+    return directory

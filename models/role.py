@@ -5,9 +5,7 @@ import uuid
 
 class Role(Base):
     __tablename__ = "role"
-
+    
+    # ID generado como cadena UUID
     id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    name: Mapped[str] = mapped_column(String)
-
-    def __init__(self, **data):
-        super().__init__(**data)
+    name: Mapped[str] = mapped_column(String, nullable=False)

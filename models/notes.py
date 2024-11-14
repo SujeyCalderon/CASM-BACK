@@ -1,16 +1,15 @@
-from sqlalchemy import Column, String, Date
-from sqlalchemy.orm import Mapped, mapped_column
-from db.database import Base
-from typing import Optional
+from sqlalchemy import Column, String, Text, Date
+from sqlalchemy.dialects.postgresql import UUID
 import uuid
-from datetime import date
+from sqlalchemy.orm import declarative_base
 
-class Notes(Base):
-    __tablename__ = "notes"
+Base = declarative_base()
 
-    id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    user_id: Mapped[Optional[str]] = mapped_column(String, nullable=True)
-    title: Mapped[Optional[str]] = mapped_column(String, nullable=True)
-    description: Mapped[Optional[str]] = mapped_column(String, nullable=True)
-    creation_date: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
-    modification_date: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
+class Note(Base):
+    __tablename__ = 'notes'
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(String, nullable=True)
+    title = Column(String, nullable=True)
+    description = Column(Text, nullable=True)
+    creation_date = Column(Date, nullable=True)
+    modification_date = Column(Date, nullable=True)

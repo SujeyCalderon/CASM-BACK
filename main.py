@@ -8,7 +8,8 @@ from routes import (
     publications_routes,
     role_routes,
     referency_router,
-    user_routes   
+    user_routes,
+    login_routes   
 )
 
 # Importa los modelos para que se puedan crear las tablas
@@ -35,6 +36,7 @@ app.include_router(publications_routes.router)
 app.include_router(role_routes.router)
 app.include_router(user_routes.router) 
 app.include_router(referency_router.router)
+app.include_router(login_routes.router)
 
 # Ruta de prueba
 @app.get("/")

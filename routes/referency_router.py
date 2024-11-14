@@ -27,7 +27,10 @@ async def create_referency_endpoint(
         estado=estado,
         codigo_postal=codigo_postal
     )
-    return create_referency(referency_data, db)
+    referency = create_referency(referency_data, db)
+    if not referency:
+        raise HTTPException(status_code=400, detail="Error al crear la referencia")
+    return referency
 
 @router.get("/referencies/", response_model=List[ReferencyResponse])
 def get_referencies_endpoint(db: Session = Depends(get_db)):
@@ -35,12 +38,21 @@ def get_referencies_endpoint(db: Session = Depends(get_db)):
 
 @router.get("/referencies/{referency_id}", response_model=ReferencyResponse)
 def get_referency_by_id_endpoint(referency_id: str, db: Session = Depends(get_db)):
-    return get_referency_by_id(referency_id, db)
+    referency = get_referency_by_id(referency_id, db)
+    if not referency:
+        raise HTTPException(status_code=404, detail="Referencia no encontrada")
+    return referency
 
 @router.put("/referencies/{referency_id}", response_model=ReferencyResponse)
 def update_referency_endpoint(referency_id: str, updated_referency: ReferencyUpdate, db: Session = Depends(get_db)):
-    return update_referency(referency_id, updated_referency, db)
+    referency = update_referency(referency_id, updated_referency, db)
+    if not referency:
+        raise HTTPException(status_code=404, detail="Referencia no encontrada")
+    return referency
 
 @router.delete("/referencies/{referency_id}", response_model=ReferencyResponse)
 def delete_referency_endpoint(referency_id: str, db: Session = Depends(get_db)):
-    return delete_referency(referency_id, db)
+    referency = delete_referency(referency_id, db)
+    if not referency:
+        raise HTTPException(status_code=404, detail="Referencia no encontrada")
+    return referency

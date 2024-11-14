@@ -1,17 +1,21 @@
 from pydantic import BaseModel
 from typing import Optional
+from uuid import UUID
 
 class PublicationBase(BaseModel):
-    user_id: str
+    user_id: Optional[str] = None
     description: Optional[str] = None
-
-class PublicationCreate(PublicationBase):
     image: Optional[str] = None
 
+class PublicationCreate(PublicationBase):
+    pass
+
 class PublicationResponse(PublicationBase):
-    id: str
-    image: Optional[str]
+    id: str  
 
     class Config:
-        from_attributes = True
+        orm_mode = True
+        json_encoders = {
+            UUID: str  
+        }
 

@@ -13,15 +13,15 @@ router = APIRouter()
 @router.post("/users/", response_model=UserResponse)
 async def create_user_endpoint(
     name: str = Form(...),
-    last_name: Optional[str] = Form(None),  # Agregado para el apellido
+    last_name: Optional[str] = Form(None),  
     email: str = Form(...),
     password: str = Form(...),
-    speciality: Optional[str] = Form(None),  # Cambiado a "speciality"
+    speciality: Optional[str] = Form(None),  
     phone: Optional[str] = Form(None),
     role: Optional[str] = Form(None),
     document: UploadFile = File(...),
-    profile_img: Optional[UploadFile] = File(None),  # Agregado para la imagen de perfil
-    id_referency: Optional[str] = Form(None),  # Agregado para la referencia
+    profile_img: Optional[UploadFile] = File(None), 
+    id_referency: Optional[str] = Form(None), 
     premium: Optional[bool] = Form(False),
     db: Session = Depends(get_db)
 ):
@@ -68,6 +68,8 @@ def get_user_by_id_endpoint(user_id: str, db: Session = Depends(get_db)):
 def update_user_endpoint(user_id: str, updated_user: UserUpdate, db: Session = Depends(get_db)):
     return update_user(user_id, updated_user, db)
 
-@router.delete("/users/{user_id}", response_model=UserResponse)
+@router.delete("/users/{user_id}")
 def delete_user_endpoint(user_id: str, db: Session = Depends(get_db)):
-    return delete_user(user_id, db)
+    delete_user(user_id, db)
+    return {"message": "Usuario eliminado correctamente"}
+

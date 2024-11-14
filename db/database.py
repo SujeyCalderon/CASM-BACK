@@ -3,7 +3,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
 
-DATABASE_URL = "postgresql://nuevo@localhost/casm"  # Cambia a tu URL real
+DATABASE_URL = "postgresql://nuevo@localhost/casm3"  # Cambia a tu URL real
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

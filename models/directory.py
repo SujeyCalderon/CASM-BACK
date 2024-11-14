@@ -4,7 +4,6 @@ import uuid
 
 class Directory(Base):
     __tablename__ = "directory"
-
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     user_id = Column(String, nullable=False)
     name = Column(String, nullable=True)

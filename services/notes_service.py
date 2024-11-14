@@ -1,44 +1,55 @@
-import uuid
-from typing import List
-from datetime import date
+from sqlalchemy.orm import Session
 from fastapi import HTTPException
-from models.notes import Notes
+from models.notes import Note
+from datetime import date
+from schemas.schemas_notes import NotesResponse, NoteUpdate
+from uuid import UUID
 
-# Lista temporal de notas (en una base de datos real se utilizaría una base de datos)
-notes: List[Notes] = []
+def create_note(note_data: NotesResponse, db: Session) -> NotesResponse:
+    # Crear una nueva nota
+    new_note = Note(
+        user_id=note_data.user_id,
+        title=note_data.title,
+        description=note_data.description,
+        creation_date=date.today(),
+        modification_date=date.today()
+    )
+    db.add(new_note)
+    db.commit()
+    db.refresh(new_note)
+    return new_note
 
-def create_note(note: Notes) -> Notes:
-    note.id = str(uuid.uuid4())  # Genera un ID único
-    notes.append(note)
-    return note
+def get_notes(db: Session) -> list[NotesResponse]:
+    return db.query(Note).all()
 
-def get_notes() -> List[Notes]:
-    return notes
-
-def get_note_by_id(note_id: str) -> Notes:
-    note = next((n for n in notes if n.id == note_id), None)
+def get_note_by_id(note_id: str, db: Session) -> NotesResponse:
+    note = db.query(Note).filter(Note.id == note_id).first()
     if note is None:
         raise HTTPException(status_code=404, detail="Nota no encontrada")
     return note
 
-def update_note(note_id: str, updated_note: Notes) -> Notes:
-    # Obtener la nota existente
-    note = get_note_by_id(note_id)
+def update_note(note_id: UUID, updated_note: NoteUpdate, db: Session) -> NotesResponse:
+    note = db.query(Note).filter(Note.id == note_id).first()
+    if note is None:
+        raise HTTPException(status_code=404, detail="Nota no encontrada")
 
-    # Convertir el modelo actualizado a un diccionario, excluyendo los campos no establecidos
-    update_data = updated_note.dict(exclude_unset=True)
-
-    # Actualizar los campos proporcionados
-    for key, value in update_data.items():
-        if value is not None and key != "id":  # No permitir modificar el ID
+    # Actualizar solo los campos proporcionados
+    for key, value in updated_note.dict(exclude_unset=True).items():
+        if value is not None:  # Solo actualizar los campos con valores no nulos
             setattr(note, key, value)
 
     # Actualizar la fecha de modificación
     note.modification_date = date.today()
 
+    db.commit()
+    db.refresh(note)
     return note
 
-def delete_note(note_id: str) -> Notes:
-    note = get_note_by_id(note_id)
-    notes.remove(note)
+def delete_note(note_id: str, db: Session) -> NotesResponse:
+    note = db.query(Note).filter(Note.id == note_id).first()
+    if note is None:
+        raise HTTPException(status_code=404, detail="Nota no encontrada")
+
+    db.delete(note)
+    db.commit()
     return note

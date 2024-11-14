@@ -1,5 +1,6 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, validator
 from typing import Optional
+from uuid import UUID
 
 class ReferencyRequest(BaseModel):
     calle: str
@@ -16,6 +17,9 @@ class ReferencyUpdate(BaseModel):
     class Config:
         orm_mode = True
 
+from pydantic import BaseModel, Field, validator
+from uuid import UUID
+
 class ReferencyResponse(BaseModel):
     id_referency: str
     calle: str
@@ -23,5 +27,7 @@ class ReferencyResponse(BaseModel):
     estado: str
     codigo_postal: str
 
-    class Config:
-        orm_mode = True
+    @validator("id_referency", pre=True, always=True)
+    def convert_uuid_to_str(cls, v):
+        return str(v) if isinstance(v, UUID) else v
+

@@ -4,17 +4,15 @@ import uuid
 
 class User(Base):
     __tablename__ = "users"
-
-    # Columnas existentes en tu base de datos
     id_user = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    role = Column(String, nullable=True)  # Cambié "rol" a "role" para seguir el estándar en inglés
+    role = Column(String, nullable=True)
     name = Column(String, index=True)
-    last_name = Column(String, nullable=True)  # Nuevo campo para apellido
+    last_name = Column(String, nullable=True)
     phone = Column(String, nullable=True)
-    password = Column(String, nullable=False)  # Asegúrate de que la contraseña no sea nula
+    password = Column(String, nullable=False)
     email = Column(String, unique=True, index=True)
-    profile_img = Column(String, nullable=True)  # Nuevo campo para imagen de perfil
-    id_referency = Column(String, ForeignKey("referencies.id"), nullable=True)  # Relación con otra tabla
+    profile_img = Column(String, nullable=True)
+    id_referency = Column(String, ForeignKey("referency.id_referency"), nullable=True)
     speciality = Column(String, nullable=True)
     premium = Column(Boolean, default=False)
     document = Column(String, nullable=True)

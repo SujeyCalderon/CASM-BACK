@@ -1,46 +1,36 @@
-from typing import List, Optional
+from typing import List
 from fastapi import HTTPException
-from datetime import date
-from models.user import User
-from models.publications import Publication
-from models.notes import Notes
-from models.directory import Directory
-from models.favorites import Favorites
-from models.role import Role
-from models.favorites import Favorites as DBFavorites  # Este es el modelo SQLAlchemy
+from sqlalchemy.orm import Session
+from models.favorites import Favorites as DBFavorites  # El modelo SQLAlchemy
+from schemas.schemas_favorites import Favorites  # El modelo Pydantic
+import uuid
 
-import uuid  # Importamos uuid para generar IDs únicos
+# Crear un favorito
+def create_favorite(db: Session, favorite: Favorites) -> DBFavorites:
+    # Asegúrate de que el ID sea un UUID válido
+    favorite.id = uuid.UUID(favorite.id)  # Si el ID es un string UUID válido
+    db_favorite = DBFavorites(**favorite.dict())
+    db.add(db_favorite)
+    db.commit()
+    db.refresh(db_favorite)
+    return db_favorite
+# Obtener todos los favoritos
+def get_favorites(db: Session) -> List[Favorites]:
+    favorites = db.query(DBFavorites).all()
+    return [Favorites.from_orm(favorite) for favorite in favorites]
 
-# Lista para almacenar favoritos en memoria (esto es temporal; en producción, usarías una base de datos)
-favorites: List[Favorites] = []
+# Obtener un favorito por ID
+def get_favorites_by_id(db: Session, favorite_id: str) -> Favorites:
+    favorite = db.query(DBFavorites).filter(DBFavorites.id == favorite_id).first()
+    if not favorite:
+        raise HTTPException(status_code=404, detail="Favorite not found")
+    return Favorites.from_orm(favorite)
 
-# Servicios para Favoritos
-def create_favorite(favorite: Favorites) -> Favorites:
-    favorite_id = str(uuid.uuid4())
-    favorite_data = DBFavorites(id=favorite_id, **favorite.dict())  # Usar el modelo de DB aquí
-    favorites.append(favorite_data)  # Guarda en la lista de favoritos
-    return Favorites.from_orm(favorite_data)  # Devuelve un modelo Pydantic
-
-
-def get_favorites() -> List[Favorites]:
-    return favorites
-
-def get_favorites_by_id(favorite_id: str) -> Favorites:
-    # Llama a get_favorites() para obtener la lista de favoritos
-    favorites_list = get_favorites()
-
-    # Busca el favorito específico por ID
-    favorite = next((d for d in favorites_list if d.id == favorite_id), None)
-    
-    # Si no se encuentra el favorito, lanza una excepción HTTP 404
-    if favorite is None:
-        raise HTTPException(status_code=404, detail="Favorite no encontrado")
-    
-    return favorite
-
-def delete_favorite(favorite_id: str) -> Favorites:
-    favorite = next((f for f in favorites if f.id == favorite_id), None)
-    if favorite is None:
-        raise HTTPException(status_code=404, detail="Favorito no encontrado")
-    favorites.remove(favorite)
-    return favorite
+# Eliminar un favorito
+def delete_favorite(db: Session, favorite_id: str) -> Favorites:
+    favorite = db.query(DBFavorites).filter(DBFavorites.id == favorite_id).first()
+    if not favorite:
+        raise HTTPException(status_code=404, detail="Favorite not found")
+    db.delete(favorite)
+    db.commit()
+    return Favorites.from_orm(favorite)
