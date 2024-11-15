@@ -1,10 +1,12 @@
 from pydantic import BaseModel, EmailStr
-from typing import Optional
+from uuid import UUID
 
 class LoginRequest(BaseModel):
     email: EmailStr
     password: str
+    user_id: UUID  # Si user_id es un UUID
+
 
 class LoginResponse(BaseModel):
-    access_token: str  # El token que el cliente usará para futuras peticiones
-    token_type: str  # Tipo de token, en este caso "bearer"
+    access_token: str
+    token_type: str

@@ -31,23 +31,16 @@ def hash_password(password: str) -> str:
     return pwd_context.hash(password)
 
 def create_user(user_data: UserRequest, db: Session):
-    # Hasheamos la contraseña
     hashed_password = hash_password(user_data.password)
-    # Excluimos 'password' del diccionario al pasarlo a User
     user_data_dict = user_data.dict(exclude={'password'})
-    
-    # Creamos el nuevo usuario, pasando la contraseña hasheada
     new_user = User(**user_data_dict, password=hashed_password)
     
-    # Guardamos el nuevo usuario en la base de datos
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
     
-    # Crear el token para el nuevo usuario
-    access_token = create_access_token(data={"sub": new_user.id_user})
+    access_token = create_access_token(data={"sub": str(new_user.id_user)})
     
-    # Retornamos la respuesta con los datos del nuevo usuario y el token
     return UserResponse(
         id_user=str(new_user.id_user),
         name=new_user.name,
@@ -60,9 +53,8 @@ def create_user(user_data: UserRequest, db: Session):
         profile_img=new_user.profile_img,
         id_referency=str(new_user.id_referency) if new_user.id_referency else None,
         premium=new_user.premium,
-        access_token=access_token  # Incluye el token en la respuesta
+        access_token=access_token
     )
-
 def get_user_by_id(user_id: str, db: Session):
     user = db.query(User).filter(User.id_user == user_id).first()
     if not user:

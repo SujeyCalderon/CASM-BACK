@@ -25,13 +25,11 @@ async def create_user_endpoint(
     premium: Optional[bool] = Form(False),
     db: Session = Depends(get_db)
 ):
-    # Guardar el documento
     unique_doc_filename = f"{uuid.uuid4()}_{document.filename}"
     doc_path = f"uploads/{unique_doc_filename}"
     with open(doc_path, "wb") as buffer:
         shutil.copyfileobj(document.file, buffer)
 
-    # Guardar la imagen de perfil si existe
     profile_img_path = None
     if profile_img:
         unique_img_filename = f"{uuid.uuid4()}_{profile_img.filename}"
@@ -39,7 +37,6 @@ async def create_user_endpoint(
         with open(profile_img_path, "wb") as buffer:
             shutil.copyfileobj(profile_img.file, buffer)
 
-    # Crear datos del usuario
     user_data = UserRequest(
         name=name,
         last_name=last_name,

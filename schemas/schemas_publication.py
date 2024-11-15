@@ -10,12 +10,16 @@ class PublicationBase(BaseModel):
 class PublicationCreate(PublicationBase):
     pass
 
-class PublicationResponse(PublicationBase):
-    id: str  
+from pydantic import BaseModel
+from typing import Optional
+
+class PublicationResponse(BaseModel):
+    id: str  # Cambia UUID a str
+    user_id: str
+    description: str
+    image: Optional[str]
 
     class Config:
         orm_mode = True
-        json_encoders = {
-            UUID: str  
-        }
+
 

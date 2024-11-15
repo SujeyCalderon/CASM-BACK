@@ -1,4 +1,3 @@
-# models/schemas_user.py
 from pydantic import BaseModel
 from typing import Optional
 
@@ -32,7 +31,7 @@ class UserUpdate(BaseModel):
         orm_mode = True
 
 class UserResponse(BaseModel):
-    id_user: str  # Cambiamos a `str` para coincidir con FastAPI
+    id_user: str
     name: str
     last_name: Optional[str] = None
     email: str
@@ -41,7 +40,7 @@ class UserResponse(BaseModel):
     role: Optional[str]
     document: Optional[str]
     profile_img: Optional[str]
-    id_referency: Optional[str]  # Cambiamos a `str`
+    id_referency: Optional[str]
     premium: bool
     access_token: Optional[str] = None  # Campo adicional para el token
 

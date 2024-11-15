@@ -9,10 +9,10 @@ from routes import (
     role_routes,
     referency_router,
     user_routes,
-    login_routes   
+    login_routes
 )
 
-# Importa los modelos para que se puedan crear las tablas
+# Importa los modelos para que se creen las tablas
 from models import directory, favorites, notes, publications, role, user, referency
 
 app = FastAPI()
@@ -28,13 +28,13 @@ def get_db():
     finally:
         db.close()
 
-# Incluye las rutas de la aplicación (sin login_routes)
+# Incluye las rutas de la aplicación
 app.include_router(directory_routes.router)
 app.include_router(favorites_routes.router)
 app.include_router(notes_routes.router)
 app.include_router(publications_routes.router)
 app.include_router(role_routes.router)
-app.include_router(user_routes.router) 
+app.include_router(user_routes.router)
 app.include_router(referency_router.router)
 app.include_router(login_routes.router)
 

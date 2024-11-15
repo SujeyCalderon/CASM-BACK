@@ -8,5 +8,6 @@ router = APIRouter()
 
 @router.post("/login", response_model=LoginResponse, tags=["Authentication"])
 def login_endpoint(login_data: LoginRequest, db: Session = Depends(get_db)):
-    auth_response = authenticate_user(login_data.email, login_data.password, db)
+    print(login_data)  # Esto te ayudará a verificar los datos recibidos
+    auth_response = authenticate_user(login_data.email, login_data.password, login_data.user_id, db)
     return LoginResponse(access_token=auth_response["access_token"], token_type=auth_response["token_type"])

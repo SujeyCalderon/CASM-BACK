@@ -1,12 +1,11 @@
-# favorites.py
-from sqlalchemy import Column, Integer, String
-from sqlalchemy.ext.declarative import declarative_base
-from db.database import Base 
-
-Base = declarative_base()
+from sqlalchemy import Column, String
+from sqlalchemy.dialects.postgresql import UUID
+from db.database import Base
+import uuid
 
 class Favorites(Base):
     __tablename__ = 'favorites'
 
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, index=True)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), nullable=True)
+    publication_id = Column(UUID(as_uuid=True), nullable=True)

@@ -2,17 +2,44 @@ from pydantic import BaseModel
 from typing import Optional
 from uuid import UUID  # Importar UUID
 
+from pydantic import BaseModel
+from typing import Optional
+from uuid import UUID
+
 class DirectoryCreate(BaseModel):
-    user_id: Optional[str] = None
-    name: Optional[str] = None
+    user_id: UUID  # Aceptará un UUID directamente
+    name: str
     description: Optional[str] = None
     phone: Optional[str] = None
     direction: Optional[str] = None
     email: Optional[str] = None
     image: Optional[str] = None
 
-class DirectoryResponse(DirectoryCreate):
-    id: UUID  # Cambiar de str a UUID
+from pydantic import BaseModel
+from uuid import UUID
+from typing import Optional
+
+class DirectoryResponse(BaseModel):
+    id: str  # Definido como string en el esquema
+    user_id: str
+    name: str
+    description: Optional[str] = None
+    phone: Optional[str] = None
+    direction: Optional[str] = None
+    email: Optional[str] = None
+    image: Optional[str] = None
 
     class Config:
         orm_mode = True
+
+from pydantic import BaseModel
+from typing import Optional
+
+
+class DirectoryUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    phone: Optional[str] = None
+    direction: Optional[str] = None
+    email: Optional[str] = None
+    image: Optional[str] = None

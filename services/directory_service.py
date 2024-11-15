@@ -2,6 +2,9 @@ from sqlalchemy.orm import Session
 from models.directory import Directory
 from schemas.schemas_directory import DirectoryCreate
 from fastapi import HTTPException
+# En services/directory_service.py
+from schemas.schemas_directory import DirectoryUpdate
+
 
 from uuid import UUID
 
@@ -33,18 +36,14 @@ def get_directory_by_id(directory_id: str, db: Session) -> Directory:
 def get_directories(db: Session) -> list[Directory]:
     return db.query(Directory).all()
 
-def update_directory(directory_id: UUID, updated_directory: DirectoryCreate, db: Session) -> Directory:
-    # Buscar el directorio por ID
-    directory = db.query(Directory).filter(Directory.id == str(directory_id)).first()  # Convertir UUID a str
-    if directory is None:
-        raise HTTPException(status_code=404, detail="Directorio no encontrado")
-    
-    # Actualizar solo los campos que fueron proporcionados
-    for field, value in updated_directory.dict(exclude_unset=True).items():
-        if value is not None:
-            setattr(directory, field, value)
+def update_directory(directory_id: str, updated_directory: DirectoryUpdate, db: Session) -> Directory:
+    directory = db.query(Directory).filter(Directory.id == directory_id).first()
+    if not directory:
+        raise HTTPException(status_code=404, detail="Directory not found")
 
-    # Guardar los cambios en la base de datos
+    for field, value in updated_directory.dict(exclude_unset=True).items():
+        setattr(directory, field, value)
+
     db.commit()
     db.refresh(directory)
     return directory

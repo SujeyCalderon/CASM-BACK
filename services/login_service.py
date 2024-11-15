@@ -1,30 +1,41 @@
-import jwt
-from datetime import datetime, timedelta
+from sqlalchemy.orm import Session
+from models.user import User
 from fastapi import HTTPException
 from passlib.context import CryptContext
-from models.user import User
-from db.database import Session
+import jwt
+from datetime import datetime, timedelta
 import os
 
-# Asegúrate de tener una clave secreta para firmar el token
-SECRET_KEY = os.getenv("SECRET_KEY", "mi_clave_secreta")  # Cambia esto a una clave secreta segura
+SECRET_KEY = os.getenv("SECRET_KEY", "mi_clave_secreta")
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30  # El token expirará después de 30 minutos
+ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
-# Función para crear el token
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+def verify_password(plain_password, hashed_password):
+    return pwd_context.verify(plain_password, hashed_password)
+
+def hash_password(password):
+    return pwd_context.hash(password)
+
 def create_access_token(data: dict):
-    # Convierte el UUID a cadena antes de incluirlo en el token
-    data["sub"] = str(data["sub"])  # Convierte el UUID a una cadena
     to_encode = data.copy()
+    expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
-# Función para autenticar al usuario y generar el token
-def authenticate_user(email: str, password: str, db: Session):
-    user = db.query(User).filter(User.email == email).first()
-    if user is None or not CryptContext(schemes=["bcrypt"], deprecated="auto").verify(password, user.password):
-        raise HTTPException(status_code=400, detail="Correo o contraseña incorrectos")
+def authenticate_user(email: str, password: str, user_id: str, db: Session):
+    try:
+        user = db.query(User).filter(User.email == email, User.id_user == user_id).first()
+        if user is None:
+            raise HTTPException(status_code=400, detail="Usuario no encontrado")
+        
+        if not verify_password(password, user.password):
+            raise HTTPException(status_code=400, detail="Contraseña incorrecta")
+        
+        access_token = create_access_token(data={"sub": str(user.id_user)})  # El 'sub' es el user_id
+        return {"access_token": access_token, "token_type": "bearer"}
     
-    # Crear el token JWT
-    access_token = create_access_token(data={"sub": user.id_user})
-    return {"access_token": access_token, "token_type": "bearer"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error en la autenticación: {str(e)}")
