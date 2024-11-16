@@ -1,69 +1,58 @@
-from sqlalchemy.orm import Session
-from models.publications import Publication
+from db.database import publications_collection
+from bson.objectid import ObjectId
 from schemas.schemas_publication import PublicationCreate
 from fastapi import HTTPException
-import uuid
 
-def create_publication(db: Session, publication_data: PublicationCreate) -> Publication:
-    publication = Publication(
-        id=str(uuid.uuid4()),  # Convertir el id a str en el momento de creación
-        user_id=publication_data.user_id,
-        description=publication_data.description,
-        image=publication_data.image
-    )
-    db.add(publication)
-    db.commit()
-    db.refresh(publication)
-
-    # Convertir 'id' a str antes de devolverlo
-    publication.id = str(publication.id)
-    
+async def create_publication(publication_data: PublicationCreate) -> dict:
+    publication = publication_data.dict()
+    result = await publications_collection.insert_one(publication)
+    # Asegúrate de que el campo _id sea convertido a id
+    publication["_id"] = str(result.inserted_id)  # Convierte ObjectId a string
+    publication["id"] = publication.pop("_id")  # Renombra _id a id
     return publication
 
-
-def get_publications(db: Session):
-    publications = db.query(Publication).all()
-
-    # Convierte los ids a str antes de devolver la lista
-    for publication in publications:
-        publication.id = str(publication.id)
-        
+async def get_publications(user_id: str) -> list:
+    publications = []
+    async for publication in publications_collection.find({"user_id": user_id}):
+        publication["_id"] = str(publication["_id"])
+        publications.append(publication)
     return publications
 
+async def get_publication_by_id(publication_id: str) -> dict:
+    publication = await publications_collection.find_one({"_id": ObjectId(publication_id)})
+    if not publication:
+        raise HTTPException(status_code=404, detail="Publication not found")
+    publication["_id"] = str(publication["_id"])
+    return publication
 
-def get_publication_by_id(db: Session, publication_id: str) -> Publication:
-    publication = db.query(Publication).filter(Publication.id == publication_id).first()
-    if publication is None:
+async def update_publication(publication_id: str, updated_data: PublicationCreate) -> dict:
+    # Verificar si la publicación existe
+    existing_publication = await publications_collection.find_one({"_id": ObjectId(publication_id)})
+    if not existing_publication:
         raise HTTPException(status_code=404, detail="Publication not found")
 
-    # Convierte el id a str antes de devolverlo
-    publication.id = str(publication.id)
-    
-    return publication
+    # Verificar si el usuario tiene permisos para actualizar
+    if existing_publication["user_id"] != updated_data.user_id:
+        raise HTTPException(status_code=403, detail="No tienes permisos para editar esta publicación")
 
+    # Actualizar campos específicos
+    update_fields = updated_data.dict(exclude_unset=True)
+    result = await publications_collection.find_one_and_update(
+        {"_id": ObjectId(publication_id)},
+        {"$set": update_fields},
+        return_document=True
+    )
 
-def update_publication(db: Session, publication_id: str, updated_data: PublicationCreate) -> Publication:
-    publication = get_publication_by_id(db, publication_id)
-    
-    # Actualiza los campos de la publicación
-    for key, value in updated_data.dict(exclude_unset=True).items():
-        setattr(publication, key, value)
+    # Asegurarse de que _id esté presente después de la actualización
+    if result:
+        result["_id"] = str(result["_id"])  # Convertir ObjectId a string
+        result["id"] = result.pop("_id")  # Renombrar _id a id
 
-    db.commit()
-    db.refresh(publication)
+    return result
 
-    # Convertir 'id' de UUID a str antes de devolverlo
-    publication.id = str(publication.id)  # Asegúrate de que el 'id' sea un string
-
-    return publication
-
-def delete_publication(db: Session, publication_id: str) -> Publication:
-    publication = get_publication_by_id(db, publication_id)
-    db.delete(publication)
-    db.commit()
-    
-    # Convertir 'id' de UUID a str antes de devolverlo
-    publication.id = str(publication.id)  # Asegúrate de que el 'id' sea un string
-
-    return publication
-
+async def delete_publication(publication_id: str) -> dict:
+    result = await publications_collection.find_one_and_delete({"_id": ObjectId(publication_id)})
+    if not result:
+        raise HTTPException(status_code=404, detail="Publication not found")
+    result["_id"] = str(result["_id"])
+    return result

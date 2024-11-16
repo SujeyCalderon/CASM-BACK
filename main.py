@@ -9,11 +9,12 @@ from routes import (
     role_routes,
     referency_router,
     user_routes,
-    login_routes
+    login_routes,
+    chat_routes
 )
 
 # Importa los modelos para que se creen las tablas
-from models import directory, favorites, notes, publications, role, user, referency
+from models import directory, favorites, notes, role, user, referency
 
 app = FastAPI()
 
@@ -37,6 +38,7 @@ app.include_router(role_routes.router)
 app.include_router(user_routes.router)
 app.include_router(referency_router.router)
 app.include_router(login_routes.router)
+app.include_router(chat_routes.router, prefix="/chat", tags=["chat"])
 
 # Ruta de prueba
 @app.get("/")

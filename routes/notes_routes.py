@@ -5,7 +5,7 @@ from schemas.schemas_notes import NotesResponse, NoteCreate, NoteUpdate
 from services.notes_service import create_note, get_note_by_id, get_notes, update_note, delete_note
 from db.database import get_db
 from utils.auth_middleware import get_current_user  # Importamos el middleware de autenticación
-from models.user import User  # O el archivo donde esté definida la clase User
+from models.user import User 
 from typing import List
 from uuid import UUID
 

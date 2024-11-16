@@ -1,33 +1,36 @@
 from fastapi import APIRouter, UploadFile, File, Form, Depends, HTTPException
-from sqlalchemy.orm import Session
 from typing import List
 import os
 import uuid
 import shutil
+from bson import ObjectId
+from fastapi.responses import JSONResponse  # Asegúrate de importarlo
 
-from models.publications import Publication
-from services.publications_service import create_publication, get_publications, get_publication_by_id, delete_publication
+
+from db.database import publications_collection
+from services.publications_service import (
+    create_publication,
+    get_publications,
+    get_publication_by_id,
+    update_publication,
+    delete_publication
+)
 from schemas.schemas_publication import PublicationCreate, PublicationResponse
-from db.database import get_db
 from utils.auth_middleware import get_current_user
 from models.user import User
-from uuid import UUID
 
 router = APIRouter()
 UPLOAD_DIR = "uploads"
 
-# Aseguramos que el directorio de subida exista
 if not os.path.exists(UPLOAD_DIR):
     os.makedirs(UPLOAD_DIR)
 
 @router.post("/publications/", response_model=PublicationResponse)
 async def create_publication_endpoint(
-    description: str = Form(...),  # Usamos Form para recibir texto
-    image: UploadFile = File(None),  # Usamos File para recibir el archivo de imagen (opcional)
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)  # Aseguramos que el usuario esté autenticado
+    description: str = Form(...),
+    image: UploadFile = File(None),
+    current_user: User = Depends(get_current_user)
 ):
-    # Si se sube una imagen, la guardamos
     image_path = None
     if image:
         filename = f"{uuid.uuid4()}_{image.filename}"
@@ -35,87 +38,76 @@ async def create_publication_endpoint(
         with open(image_path, "wb") as buffer:
             shutil.copyfileobj(image.file, buffer)
 
-    # Convertir el `user_id` de UUID a string antes de pasarlo al modelo Pydantic
-    user_id_str = str(current_user.id_user)
-
-    # Usamos los datos proporcionados por el cliente (incluyendo la imagen si la hay)
     publication_data = PublicationCreate(
-        user_id=user_id_str,  # Asignamos el ID del usuario como una cadena
+        user_id=str(current_user.id_user),
         description=description,
-        image=image_path  # Si hay una imagen, la asignamos
+        image=image_path
     )
 
-    # Llamamos al servicio para crear la publicación
-    return create_publication(db, publication_data)
+    # Ahora esta respuesta debe incluir el campo `id` (no `_id`)
+    created_publication = await create_publication(publication_data)
+    return created_publication  # Esta respuesta ahora incluye 'id' como campo
 
 @router.get("/publications/", response_model=List[PublicationResponse])
-def get_publications_endpoint(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    return get_publications(db, user_id=current_user.id_user)
+async def get_publications_endpoint(current_user: User = Depends(get_current_user)):
+    return await get_publications(str(current_user.id_user))
 
 @router.get("/publications/{publication_id}", response_model=PublicationResponse)
-def get_publication_by_id_endpoint(
-    publication_id: UUID, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
-):
-    publication = get_publication_by_id(db, publication_id)
-    if publication.user_id != current_user.id_user:  # Verificamos que la publicación sea del usuario autenticado
-        raise HTTPException(status_code=403, detail="No tienes permisos para acceder a esta publicación")
-    return publication
+async def get_publication_by_id_endpoint(publication_id: str):
+    return await get_publication_by_id(publication_id)
 
 @router.put("/publications/{publication_id}", response_model=PublicationResponse)
 async def update_publication_endpoint(
-    publication_id: UUID,
-    description: str = Form(...),
+    publication_id: str,
+    description: str = Form(None),
     image: UploadFile = File(None),
-    db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    publication = get_publication_by_id(db, publication_id)
-    
-    if str(publication.user_id) != str(current_user.id_user):
-        raise HTTPException(status_code=403, detail="No tienes permisos para editar esta publicación")
-
-    image_path = publication.image
+    image_path = None
     if image:
         filename = f"{uuid.uuid4()}_{image.filename}"
         image_path = os.path.join(UPLOAD_DIR, filename)
         with open(image_path, "wb") as buffer:
             shutil.copyfileobj(image.file, buffer)
 
-    publication.description = description
-    publication.image = image_path
-    db.commit()
-    db.refresh(publication)
-
-    # Convertimos `id` a string en la respuesta
-    return PublicationResponse(
-        id=str(publication.id),
-        user_id=str(publication.user_id),
-        description=publication.description,
-        image=publication.image
+    updated_data = PublicationCreate(
+        user_id=str(current_user.id_user),
+        description=description,
+        image=image_path
     )
-
-
-@router.delete("/publications/{publication_id}", response_model=PublicationResponse)
-def delete_publication_endpoint(
-    publication_id: UUID,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
-    # Obtenemos la publicación a eliminar
-    publication = get_publication_by_id(db, publication_id)
+    updated_publication = await update_publication(publication_id, updated_data)
     
-    # Verificamos que el usuario autenticado sea el dueño de la publicación
-    if str(publication.user_id) != str(current_user.id_user):
-        raise HTTPException(status_code=403, detail="No tienes permisos para eliminar esta publicación")
+    # No es necesario renombrar _id a id si ya lo manejamos en el servicio
+    return updated_publication
 
-    # Eliminamos la publicación de la base de datos
-    db.delete(publication)
-    db.commit()
+@router.delete("/publications/{publication_id}", status_code=200)
+async def delete_publication_endpoint(publication_id: str, current_user: User = Depends(get_current_user)):
+    # Mostrar el publication_id recibido
+    print(f"Trying to delete publication with ID: {publication_id}")
 
-    # Devolvemos los datos de la publicación eliminada con `id` convertido a string
-    return PublicationResponse(
-        id=str(publication.id),
-        user_id=str(publication.user_id),
-        description=publication.description,
-        image=publication.image
-    )
+    # Convertir el publication_id a ObjectId
+    try:
+        publication_id_obj = ObjectId(publication_id)  # Convertir el string a ObjectId
+    except Exception as e:
+        raise HTTPException(status_code=400, detail="Invalid publication ID format")
+
+    # Verificar si la publicación existe
+    publication = await publications_collection.find_one({"_id": publication_id_obj})
+
+    if not publication:
+        print(f"Publication with ID {publication_id} not found")  # Mensaje de depuración
+        raise HTTPException(status_code=404, detail="Publication not found")
+    
+    # Depuración: Verificar los valores
+    print(f"Current user ID: {current_user.id_user}")
+    print(f"Publication owner ID: {publication['user_id']}")
+    
+    # Verificar si el usuario tiene permisos para eliminar la publicación
+    if str(publication["user_id"]) != str(current_user.id_user):
+        raise HTTPException(status_code=403, detail="Not authorized to delete this publication")
+
+    # Realizar la eliminación
+    await publications_collection.delete_one({"_id": publication_id_obj})
+
+    # Retornar un mensaje indicando que la publicación fue eliminada con éxito
+    return JSONResponse(status_code=200, content={"message": "Publication successfully deleted"})

@@ -12,14 +12,10 @@ from db.database import get_db
 from utils.auth_middleware import get_current_user
 from typing import List  
 from schemas.schemas_directory import DirectoryUpdate
-# En routers/directory_router.py
+
 from services.directory_service import update_directory
-# En routes/directory_routes.py
+
 from services.directory_service import get_directory_by_id
-
-
-
-
 
 
 router = APIRouter()
