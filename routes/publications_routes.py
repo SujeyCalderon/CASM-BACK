@@ -46,7 +46,7 @@ async def create_publication_endpoint(
 
     # Ahora esta respuesta debe incluir el campo `id` (no `_id`)
     created_publication = await create_publication(publication_data)
-    return created_publication  # Esta respuesta ahora incluye 'id' como campo
+    return created_publication  # Esta respuesta ahora incluye 'id' como campo 
 
 @router.get("/publications/", response_model=List[PublicationResponse])
 async def get_publications_endpoint(current_user: User = Depends(get_current_user)):
