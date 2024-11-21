@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Depends
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from db.database import engine, Base, SessionLocal
 from routes import (
@@ -13,13 +14,28 @@ from routes import (
     chat_routes
 )
 
-# Importa los modelos para que se creen las tablas
+
 from models import directory, favorites, notes, role, user, referency
 
 app = FastAPI()
 
 # Crea las tablas en la base de datos
 Base.metadata.create_all(bind=engine)
+
+# Configuración de CORS
+origins = [
+    "http://localhost:3000",  # Reemplaza con la URL de tu frontend
+    "http://127.0.0.1:3000",  # Reemplaza con otras URLs necesarias
+    "https://casm.integrador.xyz"  # Agrega cualquier otro dominio
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],  # Permitir todos los métodos HTTP (GET, POST, etc.)
+    allow_headers=["*"]   # Permitir todos los encabezados
+)
 
 # Dependencia para obtener la sesión de la base de datos
 def get_db():
@@ -29,7 +45,7 @@ def get_db():
     finally:
         db.close()
 
-# Incluye las rutas de la aplicación
+# rutas de la aplicación
 app.include_router(directory_routes.router)
 app.include_router(favorites_routes.router)
 app.include_router(notes_routes.router)
